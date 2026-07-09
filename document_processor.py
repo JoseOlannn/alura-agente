@@ -11,11 +11,18 @@ load_dotenv()
 def process_documents(directory_path: str, vector_store_path: str = "faiss_index"):
     print(f"Cargando documentos PDF desde el directorio: {directory_path}")
     
-    # Usar PyPDFDirectoryLoader para cargar todos los PDFs en la carpeta
     loader = PyPDFDirectoryLoader(directory_path)
     documents = loader.load()
-    
     print(f"Se cargaron {len(documents)} páginas en total de los PDFs.")
+
+    # Cargar también el archivo CSV de políticas antiguas
+    csv_path = os.path.join(directory_path, "bimbam_buy_politicas.csv")
+    if os.path.exists(csv_path):
+        from langchain_community.document_loaders.csv_loader import CSVLoader
+        csv_loader = CSVLoader(file_path=csv_path)
+        csv_docs = csv_loader.load()
+        documents.extend(csv_docs)
+        print(f"Se cargaron {len(csv_docs)} filas adicionales del CSV.")
     
     # Dividir el texto en chunks más pequeños 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=4000, chunk_overlap=200)
